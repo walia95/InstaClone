@@ -1,113 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Feeds</title>
-</head>
-<style>
-    body {
-        text-align: center;
-        background: burlywood;
-        font-size: medium;
-    }
-    input[type="submit"] {
-           background: red;
-            color:white;
-            border: 0px;
-            font-size: smaller;
-            border-radius: 15%;
-            font-size: 18px;
-            padding: 5px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            margin-right: 16px;
-    }
-    input[type="text"] {
-            font-size: smaller;
-            width: 250px;
-            height: 25px;
-            background: khaki;
-            border: 0px;
-            padding: 10px 10px 10px 10px;
-            margin-bottom: 10px;
-    }
-        h1 {
-            color: firebrick;
-            font-size: 55px;
-        }
-        h3 {
-            color: saddlebrown;
-            font-size: 35px;
-    }
-</style>
+
+<html>
+<title>Feed</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}" >
+
 <body>
-<form method="POST"  action="/post/">
-        {% csrf_token%}
 
-        <input type="submit" class="btn btn-default" value="create a post">
 
-</form>
 
-<form method="POST"  action="/logout/">
-        {% csrf_token%}
+    <div class="w3-bar w3-teal">
+        <h2 class="w3-center">InstaClone</h2>
+    </div>
+    <div class="w3-bar w3-grey">
+        <a href="/feed/" class="w3-bar-item w3-button">Home</a>
+        <a href="/self/" class="w3-bar-item w3-button">{{user.name}}</a>
+        <a href="/post/" class="w3-bar-item w3-button">Add new Post</a>
+        <a href="/points/" class="w3-bar-item w3-button">Points</a>
+        <a href="/logout/" class="w3-bar-item w3-button w3-right">Logout</a>
+    </div><br><br>
 
-        <input type="submit" class="btn btn-default" value="Logout">
-</form>
-<h1>Feeds</h1>
-{% for post in posts %}
-
-<h3>
-    Posted by : {{post.user.username}}
-</h3>
- <p>[{{ post.created_on }}]</p>
-<img style="display:inline-block; width:350px; height:300px;"
-             src="{{ post.image_url }}" /><br>
-        <span  style="display:inline-block;">{{ post.caption }}</span><br/><br/>
-        <div style="display:inline-block">
-            {{ post.like_count }} likes this
+    {% for post in posts %}
+    <div class="w3-container w3-margin">
+        <div class="w3-container">
+            <h2>{{ post.user.username}}</h2>
+            <h4>{{ post.caption}}</h4>
         </div>
-<div style="display:inline-block">
-            <form method="POST" action="/like/">
-              {% csrf_token %}
-              <input type="hidden" name="post" value="{{ post.id }}" />
-                {% if post.has_liked %}
-                <input type="submit" class="btn btn-default" value="Unlike">
-                {% else %}
-                <input type="submit" class="btn btn-default" value="Like">
-                {% endif %}
-            </form>
-        </div>
+        <div class="w3-container w3-half" >
+  	        <div class="w3-card-4">
+                <img src="{{post.image_url}}" class="w3-round" alt="Image" style="width:100%">
+  	        </div><br>
+            <div>
+                <form method="POST" action="/like/" align="left">
+                    {% csrf_token %}
+                    <input type="hidden" name="post" value="{{ post.id }}">
+                    {% if post.has_liked %}
+                        <input type="submit" class="w3-btn w3-blue" value="Liked">
+                    {% else %}
+                        <input type="submit" class="w3-btn w3-text-blue w3-border w3-border-blue" value="Like">
+                    {% endif %}
+                    <label class="w3-text-blue w3-right" style="margin:8px">{{ post.like_count }}</label>
+                </form>
 
-        <div>
+            </div>
+        </div>
+        <div class="w3-container w3-half">
+            <div>
+                {% for comment in post.comments %}
+                    <div class="w3-row " style="margin: 8px 0px">
+                        <form method="POST" action="/upvote/" align="left">
+                            {% csrf_token %}
+                            <input type="hidden" name="comment" value="{{ comment.id }}">
+                            {% if comment.has_comment_liked %}
+                                <div class="w3-col" style="width:75px"><input type="submit" class="w3-button w3-blue" value="{{comment.like_count}}"></div>
+                            {% else %}
+                                <div class="w3-col" style="width:75px"><input type="submit" class="w3-button w3-text-blue w3-border w3-border-blue" value="{{comment.like_count}}"></div>
+                            {% endif %}
+                        </form>
+                        <div class="w3-rest" style="margin-top:8px"> <b>{{ comment.user.username }}:</b> {{ comment.comment_text }}</div>
+                    </div>
+                {% endfor %}
+            </div>
             <form method="POST" action="/comment/">
                 {% csrf_token %}
-                <input type="hidden" name="post" value="{{ post.id }}" />
-                <input type="text" name="comment_text" id="comment_text" placeholder="Make a comment.." value="{{ comment_text }}">
-                {{ comment_text }}
-                <input type="submit" class="btn-default btn" value="Comment">
+                <input type="hidden" name="post" value="{{ post.id }}" >
+                <input class="w3-input" type="text" name="comment_text" placeholder="Comments" value="{{ comment_text }}"><br>
             </form>
         </div>
-
-        <div>
-            {% for comment in post.comments %}
-                <p><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
-
-              <form method="POST" action="/upvote/">
-              {% csrf_token %}
-
-              <input type="hidden" name="id" value="{{ comment.id }}">
-
-              <input type="submit" class="btn btn-default" value="Upvote">
-
-          </form><span>Upvotes: {{comment.upvote_num}}</span>
-
-      {% endfor %}
-
-      </div>
-</div>
- <hr />
-  {% endfor %}
-
+    </div><br><hr><br>
+    {% endfor %}
 
 </body>
 </html>
